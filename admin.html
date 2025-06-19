@@ -46,24 +46,29 @@
 
   <h1>Apollo Admin Panel</h1>
 
-  <label for="name">Product Name</label>
-  <input type="text" id="name" required>
+  <!-- ✅ FORM WRAPPER -->
+  <form id="productForm">
+    <label for="name">Product Name</label>
+    <input type="text" id="name" required>
 
-  <label for="description">Description</label>
-  <textarea id="description" rows="3" required></textarea>
+    <label for="description">Description</label>
+    <textarea id="description" rows="3" required></textarea>
 
-  <label for="price">Price</label>
-  <input type="number" id="price" required>
+    <label for="price">Price</label>
+    <input type="number" id="price" required>
 
-  <label for="image_url">Image URL</label>
-  <input type="text" id="image_url" required>
+    <label for="image_url">Image URL</label>
+    <input type="text" id="image_url" required>
 
-  <label for="payment_link">Payment Link</label>
-  <input type="text" id="payment_link" required>
+    <label for="payment_link">Payment Link</label>
+    <input type="text" id="payment_link" required>
 
-  <button onclick="submitProduct()">Submit Product</button>
+    <button type="submit">Submit Product</button>
+  </form>
+
   <div class="message" id="message"></div>
 
+  <!-- ✅ SUPABASE + SCRIPT -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const supabase = supabase.createClient(
@@ -71,6 +76,7 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwc3Bia2xwZXdubHlmdGJnbmhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3NTIyMDgsImV4cCI6MjA2NTMyODIwOH0.gcGgErW6xteRBTBEFdYOxAY8TYrjdjaAz_l53hQBMa8'
     );
 
+    // ✅ MAIN SUBMIT FUNCTION
     async function submitProduct() {
       const name = document.getElementById('name').value.trim();
       const description = document.getElementById('description').value.trim();
@@ -80,29 +86,33 @@
       const msg = document.getElementById('message');
 
       if (!name || !description || isNaN(price) || !image_url || !payment_link) {
-        msg.textContent = '❌ Please fill in all fields.';
-        msg.style.color = 'red';
+        alert('❌ Please fill in all fields.');
         return;
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('store_products')
         .insert([{ name, description, price, image_url, payment_link }]);
 
       if (error) {
-        msg.textContent = '❌ Error: ' + error.message;
+        alert('❌ Error: ' + error.message);
+        msg.textContent = '❌ ' + error.message;
         msg.style.color = 'red';
       } else {
+        alert('✅ Product submitted!');
         msg.textContent = '✅ Product submitted!';
         msg.style.color = 'lightgreen';
 
-        document.getElementById('name').value = '';
-        document.getElementById('description').value = '';
-        document.getElementById('price').value = '';
-        document.getElementById('image_url').value = '';
-        document.getElementById('payment_link').value = '';
+        // Reset form
+        document.getElementById('productForm').reset();
       }
     }
+
+    // ✅ BIND SUBMIT EVENT
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await submitProduct();
+    });
   </script>
 </body>
 </html>
