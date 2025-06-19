@@ -1,41 +1,78 @@
-<!-- index.html --><!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Apollo Store</title>
   <style>
     body {
       background-color: black;
       color: white;
       font-family: sans-serif;
-      margin: 0;
+      min-height: 1000px;
       padding: 20px;
+      margin: 0;
     }
-    header {
-      font-size: 40px;
-      font-weight: bold;
+    .orange {
       color: orange;
     }
-    .product {
-      background-color: #222;
+    .white {
+      color: white;
+    }
+    hr {
+      height: 2px;
+      background-color: orange;
+      border: none;
+    }
+    .boxed {
       border: 1px solid orange;
       border-radius: 10px;
       padding: 20px;
-      margin-bottom: 20px;
+      background-color: #3a3a35;
+      margin: 20px auto;
+      width: 80%;
+      text-align: center;
     }
     .btn {
-      background-color: orange;
+      background-color: white;
       color: black;
-      border: none;
-      padding: 10px 15px;
+      border: 2px solid orange;
+      border-radius: 8px;
+      padding: 10px 20px;
       margin-top: 10px;
-      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .btn2 {
+      background-color: black;
+      color: orange;
+      border: 2px solid orange;
+      border-radius: 8px;
+      padding: 10px 20px;
+      display: block;
+      margin: 20px auto;
+      font-size: 16px;
+      width: fit-content;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <header>Apollo Hub</header>
-  <div id="productList"></div>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>  <script>
+  <header>
+    <h1><span class="orange">Apollo</span><br><span class="white">Store</span></h1>
+  </header>
+  <hr>
+  <button class="btn2" onclick="checkPassword()">Log in as Admin</button>
+  <hr>
+
+  <div id="productList">
+    <p style="text-align:center;">Loading products...</p>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyADUP5S5j0q6b1A22vHKPuaSVQKf_EBFoQ",
       authDomain: "exoliner-giveaways-demo.firebaseapp.com",
@@ -45,31 +82,47 @@
       messagingSenderId: "909417919852",
       appId: "1:909417919852:web:bafe12ab24d2ddd42a6f49"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
     const productList = document.getElementById('productList');
 
     db.ref('store_products').on('value', snapshot => {
       productList.innerHTML = '';
+      if (!snapshot.exists()) {
+        productList.innerHTML = '<p style="text-align:center;">No products available.</p>';
+        return;
+      }
+
       snapshot.forEach(child => {
-        const data = child.val();
-        const div = document.createElement('div');
-        div.className = 'product';
-        div.innerHTML = `
-          <h3>${data.name}</h3>
-          <p>${data.description}</p>
-          <p>Price: $${data.price}</p>
-          <img src="${data.image_url}" alt="image" width="200" style="display:block; margin:10px 0;"/>
-          <button class="btn" onclick="copyLink('${data.payment_link}')">Buy Now</button>
+        const product = child.val();
+        const box = document.createElement('div');
+        box.className = 'boxed';
+        box.innerHTML = `
+          <h2>${product.name}</h2>
+          <p>${product.description}</p>
+          <p><strong>Price:</strong> $${product.price}</p>
+          <img src="${product.image_url}" alt="Product Image" width="200" style="margin:10px 0;">
+          <button class="btn" onclick="copyLink('${product.payment_link}')">Buy Now</button>
         `;
-        productList.appendChild(div);
+        productList.appendChild(box);
       });
     });
 
     function copyLink(link) {
       navigator.clipboard.writeText(link);
-      alert('Payment link copied!');
+      alert("✅ Payment link copied!");
     }
-  </script></body>
+
+    function checkPassword() {
+      const pw = prompt("Enter admin password:");
+      if (pw === "SebJacob03") {
+        alert("✅ Admin login successful!");
+        window.location.href = "admin.html"; // redirect to admin page
+      } else {
+        alert("❌ Incorrect password.");
+      }
+    }
+  </script>
+</body>
 </html>
