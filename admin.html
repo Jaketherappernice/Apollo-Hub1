@@ -1,3 +1,4 @@
+<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +13,7 @@
     }
     h1 {
       color: orange;
+      font-size: 36px;
     }
     label {
       display: block;
@@ -37,16 +39,11 @@
       cursor: pointer;
       font-size: 16px;
     }
-    .message {
-      margin-top: 10px;
-    }
   </style>
 </head>
 <body>
-
   <h1>Apollo Admin Panel</h1>
 
-  <!-- ✅ FORM WRAPPER -->
   <form id="productForm">
     <label for="name">Product Name</label>
     <input type="text" id="name" required>
@@ -66,52 +63,51 @@
     <button type="submit">Submit Product</button>
   </form>
 
-  <div class="message" id="message"></div>
-
-  <!-- ✅ SUPABASE + SCRIPT -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script>
-    const supabase = supabase.createClient(
-      'https://ppspbklpewnlyftbgnhh.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwc3Bia2xwZXdubHlmdGJnbmhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3NTIyMDgsImV4cCI6MjA2NTMyODIwOH0.gcGgErW6xteRBTBEFdYOxAY8TYrjdjaAz_l53hQBMa8'
-    );
+    const firebaseConfig = {
+      apiKey: "AIzaSyADUP5S5j0q6b1A22vHKPuaSVQKf_EBFoQ",
+      authDomain: "exoliner-giveaways-demo.firebaseapp.com",
+      databaseURL: "https://exoliner-giveaways-demo-default-rtdb.firebaseio.com",
+      projectId: "exoliner-giveaways-demo",
+      storageBucket: "exoliner-giveaways-demo.firebasestorage.app",
+      messagingSenderId: "909417919852",
+      appId: "1:909417919852:web:bafe12ab24d2ddd42a6f49"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    // ✅ MAIN SUBMIT FUNCTION
-    async function submitProduct() {
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
       const name = document.getElementById('name').value.trim();
       const description = document.getElementById('description').value.trim();
       const price = parseFloat(document.getElementById('price').value);
       const image_url = document.getElementById('image_url').value.trim();
       const payment_link = document.getElementById('payment_link').value.trim();
-      const msg = document.getElementById('message');
 
       if (!name || !description || isNaN(price) || !image_url || !payment_link) {
         alert('❌ Please fill in all fields.');
         return;
       }
 
-      const { data, error } = await supabase
-        .from('store_products')
-        .insert([{ name, description, price, image_url, payment_link }]);
+      const product = {
+        name,
+        description,
+        price,
+        image_url,
+        payment_link,
+        timestamp: Date.now()
+      };
 
-      if (error) {
-        alert('❌ Error: ' + error.message);
-        msg.textContent = '❌ ' + error.message;
-        msg.style.color = 'red';
-      } else {
-        alert('✅ Product submitted!');
-        msg.textContent = '✅ Product submitted!';
-        msg.style.color = 'lightgreen';
-
-        // Reset form
+      try {
+        await db.ref('store_products').push(product);
+        alert('✅ Product added!');
         document.getElementById('productForm').reset();
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
       }
-    }
-
-    // ✅ BIND SUBMIT EVENT
-    document.getElementById('productForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      await submitProduct();
     });
   </script>
 </body>
