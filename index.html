@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Apollo Store</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: sans-serif;
+      margin: 0;
+    }
+
+    header {
+      padding: 20px 30px;
+      font-size: 40px;
+      font-weight: bold;
+    }
+
+    .orange {
+      color: orange;
+    }
+
+    hr {
+      border: none;
+      border-top: 2px solid orange;
+      margin: 0 20px;
+    }
+
+    .settings {
+      display: flex;
+      justify-content: flex-end;
+      padding: 10px 30px;
+    }
+
+    .btn {
+      background-color: transparent;
+      color: orange;
+      border: 2px solid orange;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    main {
+      padding: 30px;
+    }
+
+    .product-box {
+      background-color: #222;
+      border: 1px solid orange;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+      color: white;
+    }
+
+    .product-box img {
+      max-width: 100%;
+      max-height: 200px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+
+    .product-box h2 {
+      margin: 0;
+      color: orange;
+    }
+
+    .product-box p {
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="orange">Apollo</span> <span style="color: white;">Hub</span>
+  </header>
+
+  <hr />
+
+  <div class="settings">
+    <button class="btn" onclick="adminLogin()">Admin Panel</button>
+  </div>
+
+  <hr />
+
+  <main id="product-list">
+    <!-- Products load here -->
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabase = supabase.createClient(
+      'https://ppspbklpewnlyftbgnhh.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwc3Bia2xwZXdubHlmdGJnbmhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3NTIyMDgsImV4cCI6MjA2NTMyODIwOH0.gcGgErW6xteRBTBEFdYOxAY8TYrjdjaAz_l53hQBMa8'
+    );
+
+    async function loadProducts() {
+      const { data, error } = await supabase
+        .from('store_products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      const container = document.getElementById('product-list');
+      container.innerHTML = '';
+
+      if (error) {
+        container.innerHTML = `<p style="color:red;">❌ Failed to load products: ${error.message}</p>`;
+        return;
+      }
+
+      if (data.length === 0) {
+        container.innerHTML = '<p>No products found.</p>';
+        return;
+      }
+
+      data.forEach(product => {
+        const box = document.createElement('div');
+        box.className = 'product-box';
+        box.innerHTML = `
+          <h2>${product.name}</h2>
+          <p><strong>₱${product.price}</strong></p>
+          <p>${product.description}</p>
+          ${product.image_url ? `<img src="${product.image_url}" alt="Product Image">` : ''}
+          <br><br>
+          <a href="${product.payment_link}" target="_blank">
+            <button class="btn">Buy Now</button>
+          </a>
+        `;
+        container.appendChild(box);
+      });
+    }
+
+    function adminLogin() {
+      const password = prompt("Enter admin password:");
+      if (password === "SebJacob03") {
+        window.location.href = "admin.html";
+      } else {
+        alert("❌ Incorrect password.");
+      }
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Apollo Admin Panel</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      color: orange;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid orange;
+      border-radius: 8px;
+      background-color: #222;
+      color: white;
+    }
+    button {
+      margin-top: 20px;
+      background-color: orange;
+      color: black;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .message {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Apollo Admin Panel</h1>
+
+  <label for="name">Product Name</label>
+  <input type="text" id="name" required>
+
+  <label for="description">Description</label>
+  <textarea id="description" rows="3" required></textarea>
+
+  <label for="price">Price</label>
+  <input type="number" id="price" required>
+
+  <label for="image_url">Image URL</label>
+  <input type="text" id="image_url" required>
+
+  <label for="payment_link">Payment Link</label>
+  <input type="text" id="payment_link" required>
+
+  <button onclick="submitProduct()">Submit Product</button>
+  <div class="message" id="message"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabase = supabase.createClient(
+      'https://ppspbklpewnlyftbgnhh.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwc3Bia2xwZXdubHlmdGJnbmhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3NTIyMDgsImV4cCI6MjA2NTMyODIwOH0.gcGgErW6xteRBTBEFdYOxAY8TYrjdjaAz_l53hQBMa8'
+    );
+
+    async function submitProduct() {
+      const name = document.getElementById('name').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const price = parseFloat(document.getElementById('price').value);
+      const image_url = document.getElementById('image_url').value.trim();
+      const payment_link = document.getElementById('payment_link').value.trim();
+      const msg = document.getElementById('message');
+
+      if (!name || !description || isNaN(price) || !image_url || !payment_link) {
+        msg.textContent = '❌ Please fill in all fields.';
+        msg.style.color = 'red';
+        return;
+      }
+
+      const { error } = await supabase
+        .from('store_products')
+        .insert([{ name, description, price, image_url, payment_link }]);
+
+      if (error) {
+        msg.textContent = '❌ Error: ' + error.message;
+        msg.style.color = 'red';
+      } else {
+        msg.textContent = '✅ Product submitted!';
+        msg.style.color = 'lightgreen';
+
+        document.getElementById('name').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('price').value = '';
+        document.getElementById('image_url').value = '';
+        document.getElementById('payment_link').value = '';
+      }
+    }
+  </script>
+</body>
+</html>
