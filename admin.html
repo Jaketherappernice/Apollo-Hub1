@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Apollo Admin Panel</title>
+  <title>Admin - Configure Products</title>
   <style>
     body {
       background-color: black;
@@ -10,128 +9,150 @@
       font-family: sans-serif;
       padding: 20px;
     }
-    h1 {
-      color: orange;
-      text-align: center;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
+    .orange { color: orange; }
+    .product {
       border: 1px solid orange;
-      border-radius: 8px;
-      background-color: #222;
-      color: white;
+      padding: 10px;
+      margin: 10px 0;
     }
-    button {
-      margin-top: 20px;
-      background-color: orange;
-      color: black;
-      padding: 10px 20px;
+    .btn {
+      margin: 5px;
+      padding: 6px 12px;
       border: none;
-      border-radius: 8px;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 16px;
     }
-    .message {
-      margin-top: 15px;
-      font-weight: bold;
+    .edit-btn { background-color: #ffaa00; color: black; }
+    .delete-btn { background-color: red; color: white; }
+    input, textarea {
+      display: block;
+      width: 100%;
+      margin: 5px 0 10px;
+      padding: 8px;
+    }
+    img {
+      max-width: 100px;
+      margin-top: 5px;
+    }
+    a {
+      color: #00f;
     }
   </style>
 </head>
 <body>
 
-  <h1>Apollo Admin Panel</h1>
+  <h1 class="orange">Configure Products</h1>
 
-  <form id="productForm">
-    <label for="name">Product Name</label>
-    <input type="text" id="name" required>
+  <h2>Add Product</h2>
+  <input type="text" id="name" placeholder="Product Name">
+  <textarea id="description" placeholder="Description"></textarea>
+  <input type="number" id="price" placeholder="Price">
+  <input type="text" id="image" placeholder="Image URL (https://...)">
+  <input type="text" id="payment" placeholder="Payment Link (e.g. https://paypal.me/...)">
+  <button class="btn" onclick="addProduct()">Add Product</button>
 
-    <label for="description">Description</label>
-    <textarea id="description" rows="3" required></textarea>
+  <h2>Product List</h2>
+  <div id="productList">Loading...</div>
 
-    <label for="price">Price (in USD)</label>
-    <input type="number" id="price" min="0" required>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-    <label for="image_url">Image URL</label>
-    <input type="text" id="image_url" required>
-
-    <label for="payment_link">Payment Link</label>
-    <input type="text" id="payment_link" required>
-
-    <button type="submit">Submit Product</button>
-    <div class="message" id="message"></div>
-  </form>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script>
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyADUP5S5j0q6b1A22vHKPuaSVQKf_EBFoQ",
       authDomain: "exoliner-giveaways-demo.firebaseapp.com",
       databaseURL: "https://exoliner-giveaways-demo-default-rtdb.firebaseio.com",
       projectId: "exoliner-giveaways-demo",
-      storageBucket: "exoliner-giveaways-demo.firebasestorage.app",
+      storageBucket: "exoliner-giveaways-demo.appspot.com",
       messagingSenderId: "909417919852",
-      appId: "1:909417919852:web:bafe12ab24d2ddd42a6f49"
+      appId: "1:909417919852:web:bafe12ab24d2ddd42a6f49",
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const form = document.getElementById('productForm');
-    const messageBox = document.getElementById('message');
+    function addProduct() {
+      const name = document.getElementById("name").value;
+      const description = document.getElementById("description").value;
+      const price = parseFloat(document.getElementById("price").value);
+      const image = document.getElementById("image").value;
+      const payment = document.getElementById("payment").value;
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const name = document.getElementById('name').value.trim();
-      const description = document.getElementById('description').value.trim();
-      const price = parseFloat(document.getElementById('price').value);
-      const image_url = document.getElementById('image_url').value.trim();
-      const payment_link = document.getElementById('payment_link').value.trim();
-
-      if (!name || !description || isNaN(price) || !image_url || !payment_link) {
-        showMessage('❌ Please fill in all fields correctly.', 'red');
+      if (!name || !description || isNaN(price) || !image || !payment) {
+        alert("Please fill in all fields correctly.");
         return;
       }
 
-      const product = {
-        name,
-        description,
-        price,
-        image_url,
-        payment_link,
-        timestamp: Date.now()
-      };
-
-      try {
-        await db.ref('store_products').push(product);
-        form.reset();
-        showMessage('✅ Product submitted successfully!', 'lightgreen');
-      } catch (error) {
-        showMessage('❌ Error: ' + error.message, 'red');
-      }
-    });
-
-    function showMessage(text, color) {
-      messageBox.textContent = text;
-      messageBox.style.color = color;
+      const newRef = db.ref("products").push();
+      newRef.set({ name, description, price, image, payment }).then(() => {
+        document.getElementById("name").value = "";
+        document.getElementById("description").value = "";
+        document.getElementById("price").value = "";
+        document.getElementById("image").value = "";
+        document.getElementById("payment").value = "";
+        loadProducts();
+      });
     }
 
-    // Optional password check (can be removed if not needed)
-    window.onload = () => {
-      const pass = prompt("Enter admin password:");
-      if (pass !== "SebJacob03") {
-        alert("❌ Incorrect password.");
-        document.body.innerHTML = "<h1 style='color: red; text-align:center;'>Access Denied</h1>";
+    function loadProducts() {
+      const list = document.getElementById("productList");
+      db.ref("products").once("value", snapshot => {
+        list.innerHTML = "";
+        if (!snapshot.exists()) {
+          list.innerHTML = "<p>No products found.</p>";
+          return;
+        }
+
+        snapshot.forEach(child => {
+          const data = child.val();
+          const id = child.key;
+
+          const item = document.createElement("div");
+          item.className = "product";
+          item.innerHTML = `
+            <p><strong>Name:</strong> ${data.name}</p>
+            <p><strong>Description:</strong> ${data.description}</p>
+            <p><strong>Price:</strong> $${data.price}</p>
+            <p><strong>Image:</strong><br><img src="${data.image}" alt="Product Image"></p>
+            <p><strong>Payment Link:</strong> <a href="${data.payment}" target="_blank">${data.payment}</a></p>
+            <button class="btn edit-btn" onclick="editProduct('${id}', \`${data.name}\`, \`${data.description}\`, ${data.price}, '${data.image}', '${data.payment}')">Edit</button>
+            <button class="btn delete-btn" onclick="deleteProduct('${id}')">Delete</button>
+          `;
+          list.appendChild(item);
+        });
+      });
+    }
+
+    function deleteProduct(id) {
+      if (confirm("Delete this product?")) {
+        db.ref("products/" + id).remove().then(loadProducts);
       }
-    };
+    }
+
+    function editProduct(id, name, description, price, image, payment) {
+      const newName = prompt("Edit name:", name);
+      const newDesc = prompt("Edit description:", description);
+      const newPrice = parseFloat(prompt("Edit price:", price));
+      const newImage = prompt("Edit image URL:", image);
+      const newPayment = prompt("Edit payment link:", payment);
+
+      if (!newName || !newDesc || isNaN(newPrice) || !newImage || !newPayment) {
+        alert("Invalid input.");
+        return;
+      }
+
+      db.ref("products/" + id).update({
+        name: newName,
+        description: newDesc,
+        price: newPrice,
+        image: newImage,
+        payment: newPayment
+      }).then(loadProducts);
+    }
+
+    loadProducts();
   </script>
 </body>
 </html>
